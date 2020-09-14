@@ -1,0 +1,148 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Flip Cards</title>
+    <META charset="UTF-8">
+     <style>
+        td.card {
+            width: 100px;
+            height: 140px;
+            border: 1px solid black;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 36px;
+            background-color: white;
+            box-shadow: rgb(128, 128, 128) 5px 5px;
+        }
+        td.back {
+            background-image: url("card.png");
+            background-size: 100px 140px;
+        }
+    </style>
+    <script>
+        //"use strict";
+        // 配列シャッフル
+        Array.prototype.shuffle = function () { //配列Arrayのコンストラクタのprototypeにshuffleというメソッド を追加。元々配列配列型にはshuttleというメソッドはないが、配列の暗黙のprototypeの参照先にshuttleという関数オブジェクトを登録。
+            var i = this.length;
+            while (i) {
+                var j = Math.floor(Math.random() * i);//Mathによりnew を使ってオブジェクトを生成しなくても、プロパティやメソッドを呼び出し、数値計算をおこなうことができる。 Math.floor() メソッドは、引数として与えた数以下の最大の整数を返します。
+                var t = this[--i]; //前置型デクリメント演算子。 iの値を１減らす。
+                this[i] = this[j];
+                this[j] = t;
+            }
+            return this;
+        }
+
+        // 広域変数
+        var timer = NaN, score = 0, flipTimer, prevCard, startTime;
+
+        // 初期化関数
+        function init() {
+            var table = document.getElementById("table");
+
+            var cards = [];
+            for (var i = 1 ; i <= 10 ; i++) { //10×２枚
+                cards.push(i); //１枚目
+                cards.push(i); //遂になる２枚目
+            }
+            cards.shuffle();//20枚(ペア×10組)のカードをランダムに並べ替え
+
+            for (var i = 0 ; i < 4 ; i++) { //２重for文でカードを並べる。15パズルと同じ処理
+                var tr = document.createElement("tr");
+                for (var j = 0 ; j < 5 ; j++) {
+                    var td = document.createElement("td");
+                    td.className = "card back";
+                    td.number = cards[i * 5 + j];
+                    td.onclick = flip;
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+
+            startTime = new Date(); //最初にゲームを開始した
+            timer = setInterval(tick, 1000);
+        }
+
+        // 経過時間計測用タイマー
+        function tick() {
+            var now = new Date();
+            var elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+            document.getElementById("time").textContent = elapsed;
+        }
+
+        // カード裏返し
+        function flip(e) {
+            var src = e.srcElement; //イベントが発生したオブジェクト（エレメント）を示す。
+            if (flipTimer || src.textContent != "") { //98行目flipTimerが値を保持している間(２枚が面になってしばらく表示されている間)、もしくは既に表になったカードがクリックされた場合(75行目)、何も行わず、returnで戻る。
+                return;
+            }
+
+            var num = src.number;
+            src.className = "card";
+
+            switch (num){
+              case 1:
+                src.textContent = "A";
+              break;
+              case 2:
+                src.textContent = "B";
+              break;
+              case 3:
+                src.textContent = "C";
+              break;
+              case 4:
+                src.textContent = "D";
+              break;
+              case 5:
+                src.textContent = "E";
+              break;
+              case 6:
+                src.textContent = "F";
+              break;
+              case 7:
+                src.textContent = "G";
+              break;
+              case 8:
+                src.textContent = "H";
+              break;
+              case 9:
+                src.textContent = "J";
+              break;
+              case 10:
+                src.textContent = "K";
+              break;
+            }
+
+            // １枚目
+            if (prevCard == null) {  //prevCard １枚目にめくったカード
+                prevCard = src;
+                return;
+            }
+
+            // ２枚目
+            if (prevCard.number == num) { //****全部のカードが裏返しになった時??
+                if (++score == 10) {
+                    clearInterval(timer); //経過時間の計測を止める
+                }
+                prevCard = null; //表のカードがゼロ
+                clearTimeout(flipTimer); //元に裏返すためのタイマー flipTimerを停止させます。
+            } else {
+                flipTimer = setTimeout(function () { //２枚目にめくったカードをしばらく表示状態にしておくためのタイマー
+                    src.className = "card back";
+                    src.textContent = ""; //２枚目を元の裏返しに戻す。
+                    prevCard.className = "card back";
+                    prevCard.textContent = ""; //1枚目を元の裏返しに戻す。
+                    prevCard = null; //１枚目の情報をクリア
+                    flipTimer = NaN;//２枚目にめくった表示を  Not-a-Number
+                }, 1000);
+            }
+        }
+    </script>
+</head>
+<body onload="init()">
+    <table id="table"></table>
+    <h2>
+        経過時間：<span id="time">0</span>秒
+    </h2>
+</body>
+</html>
